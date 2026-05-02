@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CakeCo">
+<title>✦ CakeCo Recipe Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inconsolata:wght@400;600&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0608;
+    --surface: rgba(255,255,255,0.03);
+    --border: rgba(255,160,120,0.18);
+    --accent: #fb923c;
+    --accent2: #9a3412;
+    --text: #fdf4ee;
+    --muted: #9a7a6a;
+    --green: #34d399;
+    --pink: #f9a8d4;
+    --error: #f87171;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { background: var(--bg); color: var(--text); font-family: 'Lora', Georgia, serif; min-height: 100vh; min-height: -webkit-fill-available; padding-bottom: env(safe-area-inset-bottom); overflow-x: hidden; }
+  .orb { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; filter: blur(80px); }
+  .orb1 { top: -15%; left: -15%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(154,52,18,0.3) 0%, transparent 70%); }
+  .orb2 { bottom: -20%; right: -15%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(251,146,60,0.15) 0%, transparent 70%); }
+  .container { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 0 16px 80px; }
+  .header { text-align: center; padding: 48px 20px 32px; border-bottom: 1px solid var(--border); }
+  .header-eyebrow { font-family: 'Inconsolata', monospace; font-size: 10px; letter-spacing: 6px; color: var(--accent); text-transform: uppercase; margin-bottom: 12px; }
+  .header h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.2rem, 9vw, 3.4rem); font-weight: 900; font-style: italic; line-height: 1.1; background: linear-gradient(135deg, #fed7aa, #fb923c, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .header p { font-family: 'Inconsolata', monospace; font-size: 11px; letter-spacing: 3px; color: var(--muted); margin-top: 10px; text-transform: uppercase; }
+  .api-section { margin-top: 28px; background: rgba(251,146,60,0.05); border: 1px solid rgba(251,146,60,0.2); border-radius: 14px; padding: 18px; }
+  .api-row { display: flex; gap: 8px; align-items: center; }
+  .api-input { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; color: var(--text); font-family: 'Inconsolata', monospace; font-size: 13px; outline: none; -webkit-appearance: none; }
+  .api-input:focus { border-color: var(--accent); }
+  .api-toggle { background: rgba(251,146,60,0.1); border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; color: var(--accent); font-family: 'Inconsolata', monospace; font-size: 12px; cursor: pointer; white-space: nowrap; }
+  .api-hint { font-family: 'Inconsolata', monospace; font-size: 10px; color: rgba(154,122,106,0.7); margin-top: 8px; letter-spacing: 1px; }
+  .api-saved { font-family: 'Inconsolata', monospace; font-size: 10px; color: var(--green); margin-top: 6px; letter-spacing: 1px; display: none; }
+  .section-label { font-family: 'Inconsolata', monospace; font-size: 10px; letter-spacing: 5px; color: var(--accent); text-transform: uppercase; margin: 24px 0 8px; }
+  .locked-note { font-family: 'Inconsolata', monospace; font-size: 10px; color: var(--muted); letter-spacing: 1px; margin-top: 6px; font-style: italic; }
+  .icing-hint, .filling-hint { font-family: 'Inconsolata', monospace; font-size: 10px; letter-spacing: 1px; margin-top: 8px; color: var(--green); display: none; }
+  select { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; color: var(--text); font-family: 'Lora', Georgia, serif; font-size: 15px; outline: none; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23fb923c' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; transition: border-color 0.2s; }
+  select:focus { border-color: rgba(251,146,60,0.6); }
+  select option { background: #1a0f0a; color: var(--text); }
+  select:disabled { opacity: 0.4; cursor: not-allowed; }
+  input[type="text"] { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; color: var(--text); font-family: 'Lora', Georgia, serif; font-size: 15px; outline: none; -webkit-appearance: none; transition: border-color 0.2s; }
+  input[type="text"]:focus { border-color: rgba(251,146,60,0.6); }
+  input::placeholder { color: var(--muted); font-style: italic; }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .generate-btn { width: 100%; margin-top: 28px; padding: 18px; border-radius: 14px; border: none; background: linear-gradient(135deg, var(--accent2), var(--accent)); color: #fff; font-family: 'Inconsolata', monospace; font-size: 14px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; cursor: pointer; box-shadow: 0 0 30px rgba(251,146,60,0.25); transition: all 0.2s; -webkit-appearance: none; }
+  .generate-btn:active { transform: scale(0.98); opacity: 0.9; }
+  .generate-btn:disabled { background: rgba(251,146,60,0.2); color: var(--muted); box-shadow: none; cursor: not-allowed; }
+  .status { font-family: 'Inconsolata', monospace; font-size: 12px; letter-spacing: 2px; color: var(--accent); margin-top: 20px; text-align: center; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); display: none; }
+  .status.visible { display: block; }
+  .status.error { color: var(--error); border-color: rgba(248,113,113,0.3); }
+  .recipe-box { margin-top: 28px; background: rgba(0,0,0,0.3); border: 1px solid rgba(251,146,60,0.25); border-radius: 16px; padding: 24px; animation: fadeUp 0.4s ease both; }
+  .recipe-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 900; font-style: italic; color: #fed7aa; margin-bottom: 6px; }
+  .flavor-note { font-family: 'Lora', Georgia, serif; font-size: 13px; font-style: italic; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+  .recipe-section { margin-bottom: 20px; }
+  .recipe-section-title { font-family: 'Inconsolata', monospace; font-size: 10px; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .recipe-item { font-family: 'Lora', Georgia, serif; font-size: 14px; color: var(--text); line-height: 1.8; padding: 3px 0; }
+  .recipe-item::before { content: "•  "; color: var(--accent); }
+  .recipe-check::before { content: "☐  "; color: var(--accent); }
+  .bake-badge { display: inline-block; background: rgba(251,146,60,0.12); border: 1px solid rgba(251,146,60,0.3); border-radius: 10px; padding: 10px 16px; font-family: 'Inconsolata', monospace; font-size: 13px; color: #fed7aa; letter-spacing: 2px; margin-bottom: 16px; }
+  .instructions-text { font-family: 'Lora', Georgia, serif; font-size: 14px; color: var(--text); line-height: 1.9; white-space: pre-wrap; }
+  .tips-box { background: rgba(251,146,60,0.06); border: 1px solid rgba(251,146,60,0.2); border-radius: 10px; padding: 14px 16px; margin-top: 16px; }
+  .tips-text { font-family: 'Lora', Georgia, serif; font-size: 13px; color: #fed7aa; line-height: 1.8; font-style: italic; }
+  .shopping-box { margin-top: 16px; background: rgba(52,211,153,0.04); border: 1px solid rgba(52,211,153,0.2); border-radius: 16px; padding: 20px; }
+  .shopping-title { font-family: 'Inconsolata', monospace; font-size: 10px; letter-spacing: 4px; color: var(--green); text-transform: uppercase; margin-bottom: 14px; }
+  .copy-btn { padding: 6px 16px; border-radius: 50px; border: 1.5px solid var(--border); background: transparent; color: var(--muted); font-family: 'Inconsolata', monospace; font-size: 11px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; -webkit-appearance: none; min-width: 64px; text-align: center; margin-top: 16px; }
+  .copy-btn.copied { color: #fed7aa; border-color: var(--accent); }
+  .custom-section { margin-top: 28px; background: rgba(249,168,212,0.04); border: 1px solid rgba(249,168,212,0.2); border-radius: 14px; padding: 20px; }
+  .custom-title { font-family: 'Inconsolata', monospace; font-size: 10px; letter-spacing: 5px; color: var(--pink); text-transform: uppercase; margin-bottom: 16px; }
+  .pricing-box { margin-top: 16px; background: rgba(251,146,60,0.05); border: 1px solid rgba(251,146,60,0.25); border-radius: 16px; padding: 20px; }
+  .pricing-title { font-family: 'Inconsolata', monospace; font-size: 10px; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; margin-bottom: 16px; }
+  .pricing-row { display: flex; justify-content: space-between; align-items: center; font-family: 'Lora', Georgia, serif; font-size: 14px; color: var(--text); padding: 5px 0; }
+  .pricing-row-label { color: var(--muted); font-family: 'Inconsolata', monospace; font-size: 12px; letter-spacing: 1px; }
+  .pricing-labor-row { display: flex; align-items: center; gap: 6px; font-family: 'Inconsolata', monospace; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+  .pricing-input { width: 58px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 5px 8px; color: var(--text); font-family: 'Inconsolata', monospace; font-size: 13px; outline: none; -webkit-appearance: none; text-align: center; }
+  .pricing-input:focus { border-color: var(--accent); }
+  .pricing-divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+  .pricing-total-row { display: flex; justify-content: space-between; align-items: center; }
+  .pricing-total-label { font-family: 'Inconsolata', monospace; font-size: 11px; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; }
+  .pricing-total-value { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 900; color: #fed7aa; }
+  .pricing-per-slice { font-family: 'Inconsolata', monospace; font-size: 10px; color: var(--muted); letter-spacing: 1px; margin-top: 6px; text-align: right; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+  .pulsing { animation: pulse 1.2s ease infinite; }
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="container">
+  <div class="header">
+    <div class="header-eyebrow">✦ Recipe Generator ✦</div>
+    <h1>CakeCo</h1>
+    <p>Powered by Groq</p>
+  </div>
+  <div class="api-section" style="margin-top:28px">
+    <div class="section-label" style="margin-top:0">Groq API Key</div>
+    <div class="api-row">
+      <input type="password" id="api-key" class="api-input" placeholder="gsk_...">
+      <button class="api-toggle" onclick="toggleKey()">Show</button>
+    </div>
+    <div class="api-hint">Get yours free at console.groq.com → API Keys</div>
+    <div class="api-saved" id="api-saved">✓ Key saved to this browser</div>
+  </div>
+  <div class="section-label">Cake Flavor</div>
+  <select id="flavor">
+    <optgroup label="Standard">
+      <option value="vanilla">Vanilla</option>
+      <option value="chocolate">Chocolate</option>
+      <option value="strawberry">Strawberry</option>
+      <option value="lemon">Lemon</option>
+      <option value="red velvet">Red Velvet</option>
+      <option value="funfetti">Funfetti</option>
+      <option value="carrot">Carrot</option>
+      <option value="spice">Spice</option>
+      <option value="white">White</option>
+    </optgroup>
+    <optgroup label="Specialty">
+      <option value="reeses">Reese's</option>
+      <option value="cookie butter">Cookie Butter</option>
+      <option value="blueberry lemon">Blueberry Lemon</option>
+      <option value="oreo">Oreo</option>
+      <option value="smores">S'mores</option>
+      <option value="strawberry lemon">Strawberry Lemon</option>
+      <option value="banana pudding">Banana Pudding</option>
+      <option value="peach cobbler">Peach Cobbler</option>
+      <option value="german chocolate">German Chocolate</option>
+    </optgroup>
+    <option value="custom">✨ Custom Flavor (use section below)</option>
+  </select>
+  <div class="section-label">Icing</div>
+  <select id="icing">
+    <option value="default">🤍 Rich's Better Cream (default)</option>
+    <option value="cream cheese">🧀 Cream Cheese</option>
+    <option value="coconut pecan">🥥 Coconut Pecan</option>
+    <option value="chocolate buttercream">🍫 Chocolate Buttercream</option>
+    <option value="vanilla buttercream">🍦 Vanilla Buttercream</option>
+    <option value="lemon glaze">🍋 Lemon Glaze</option>
+    <option value="whipped chocolate ganache">🍫 Whipped Chocolate Ganache</option>
+    <option value="peanut butter buttercream">🥜 Peanut Butter Buttercream</option>
+    <option value="cookie butter buttercream">🍪 Cookie Butter Buttercream</option>
+  </select>
+  <div class="icing-hint" id="icing-hint"></div>
+  <div class="section-label">Filling <span style="color:var(--muted);font-size:9px;letter-spacing:2px">(OPTIONAL)</span></div>
+  <select id="filling">
+    <option value="none">None — use icing between layers</option>
+    <option value="strawberry">🍓 Strawberry Pie Filling</option>
+    <option value="blueberry">🫐 Blueberry Pie Filling</option>
+    <option value="apple">🍎 Apple Pie Filling</option>
+    <option value="peach">🍑 Peach Pie Filling</option>
+    <option value="cherry">🍒 Cherry Pie Filling</option>
+    <option value="lemon curd">🍋 Lemon Curd</option>
+    <option value="cream cheese">🧀 Cream Cheese Filling</option>
+    <option value="nutella">🍫 Nutella</option>
+    <option value="caramel">🍮 Caramel</option>
+    <option value="raspberry">🫐 Raspberry Jam</option>
+  </select>
+  <div class="locked-note" id="filling-locked" style="display:none">🔒 This flavor has a built-in filling — locked</div>
+  <div class="filling-hint" id="filling-hint"></div>
+  <div class="row-2">
+    <div>
+      <div class="section-label">Pan Size</div>
+      <select id="pan">
+        <option value="6">6 inch</option>
+        <option value="8">8 inch</option>
+        <option value="9" selected>9 inch</option>
+        <option value="10">10 inch</option>
+        <option value="12">12 inch</option>
+      </select>
+    </div>
+    <div>
+      <div class="section-label">Layers</div>
+      <select id="layers">
+        <option value="1">1 layer</option>
+        <option value="2" selected>2 layers</option>
+        <option value="3">3 layers</option>
+        <option value="4">4 layers</option>
+        <option value="5">5 layers</option>
+      </select>
+    </div>
+  </div>
+  <button class="generate-btn" id="generate-btn" onclick="generate()">🎂 &nbsp; Generate Recipe</button>
+  <div class="status" id="status"></div>
+  <div id="output"></div>
+  <div class="custom-section" id="custom-section" style="display:none">
+    <div class="custom-title">✨ Custom Flavor</div>
+    <div class="section-label" style="margin-top:0">Flavor Name *</div>
+    <input type="text" id="custom-flavor" placeholder="e.g. black forest, cotton candy, key lime...">
+    <div class="section-label">Custom Icing <span style="color:var(--muted);font-size:9px;letter-spacing:2px">(OPTIONAL)</span></div>
+    <input type="text" id="custom-icing" placeholder="e.g. brown butter, lavender, maple cream cheese...">
+    <button class="generate-btn" id="custom-btn" onclick="generateCustom()" style="background:linear-gradient(135deg,#831843,#ec4899);box-shadow:0 0 30px rgba(236,72,153,0.25)">✨ &nbsp; Generate Custom Recipe</button>
+  </div>
+</div>
+<script>
+const GROQ_URL="https://api.groq.com/openai/v1/chat/completions";
+const GROQ_MODEL="llama-3.3-70b-versatile";
+window.addEventListener('load',()=>{const s=localStorage.getItem('groq_api_key');if(s){document.getElementById('api-key').value=s;document.getElementById('api-saved').style.display='block';}});
+document.getElementById('api-key').addEventListener('change',()=>{const k=document.getElementById('api-key').value.trim();if(k){localStorage.setItem('groq_api_key',k);document.getElementById('api-saved').style.display='block';}});
+function toggleKey(){const i=document.getElementById('api-key');const b=event.target;if(i.type==='password'){i.type='text';b.textContent='Hide';}else{i.type='password';b.textContent='Show';}}
+const LOCKED_FILLINGS={'blueberry lemon':'1 can blueberry pie filling','strawberry lemon':'1 can strawberry pie filling','peach cobbler':'1 can peach pie filling'};
+const FILLING_OPTION_LABELS={'none':'None','strawberry':'Strawberry Pie Filling','blueberry':'Blueberry Pie Filling','apple':'Apple Pie Filling','peach':'Peach Pie Filling','cherry':'Cherry Pie Filling','lemon curd':'Lemon Curd','cream cheese':'Cream Cheese Filling','nutella':'Nutella','caramel':'Caramel','raspberry':'Raspberry Jam'};
+const ICING_LABELS={'default':"Rich's Better Cream",'cream cheese':'Cream Cheese','coconut pecan':'Coconut Pecan','chocolate buttercream':'Chocolate Buttercream','vanilla buttercream':'Vanilla Buttercream','lemon glaze':'Lemon Glaze','whipped chocolate ganache':'Whipped Chocolate Ganache','peanut butter buttercream':'Peanut Butter Buttercream','cookie butter buttercream':'Cookie Butter Buttercream'};
+document.getElementById('flavor').addEventListener('change',()=>{const flavorKey=document.getElementById('flavor').value;const isCustom=flavorKey==='custom';const isLocked=LOCKED_FILLINGS[flavorKey];const fillingEl=document.getElementById('filling');const lockedNote=document.getElementById('filling-locked');const icingHint=document.getElementById('icing-hint');const fillingHint=document.getElementById('filling-hint');document.getElementById('custom-section').style.display=isCustom?'block':'none';document.getElementById('generate-btn').style.display=isCustom?'none':'block';if(isLocked){fillingEl.disabled=true;fillingEl.value='none';lockedNote.style.display='block';lockedNote.textContent=`🔒 Built-in filling: ${isLocked}`;}else{fillingEl.disabled=false;lockedNote.style.display='none';}const flavorData=FLAVOR_MAP[flavorKey];if(flavorData&&flavorData.suggested_icing){const suggestedKey=flavorData.suggested_icing;document.getElementById('icing').value=suggestedKey;const label=ICING_LABELS[suggestedKey]||suggestedKey;icingHint.textContent=`✦ suggested for this flavor: ${label}`;icingHint.style.display='block';}else{icingHint.style.display='none';}if(!isLocked&&flavorData&&flavorData.suggested_filling){const sf=flavorData.suggested_filling;document.getElementById('filling').value=sf;const label=FILLING_OPTION_LABELS[sf]||sf;fillingHint.textContent=`✦ suggested for this flavor: ${label}`;fillingHint.style.display='block';}else{fillingHint.style.display='none';}});
+function setStatus(msg,isError=false){const el=document.getElementById('status');el.textContent=msg;el.className='status visible'+(isError?' error':' pulsing');}
+function clearStatus(){document.getElementById('status').className='status';}
+function copyText(text,btn){const fallback=()=>{const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0;top:0;left:0';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy');btn.textContent='✓ Copied!';btn.classList.add('copied');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied');},2000);}catch(e){btn.textContent='Failed';}document.body.removeChild(ta);};if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(text).then(()=>{btn.textContent='✓ Copied!';btn.classList.add('copied');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied');},2000);}).catch(fallback);}else{fallback();}}
+const FILLING_LABELS={'none':null,'strawberry':'1 can strawberry pie filling','blueberry':'1 can blueberry pie filling','apple':'1 can apple pie filling','peach':'1 can peach pie filling','cherry':'1 can cherry pie filling','lemon curd':'1 jar lemon curd','cream cheese':'1 block (8 oz) cream cheese, softened + ¼ cup powdered sugar + 1 tsp vanilla — beat until smooth','nutella':'1 cup Nutella','caramel':'1 cup caramel sauce','raspberry':'1 cup raspberry jam'};
+const ICING_COSTS={'default':7.50,'cream cheese':10.00,'coconut pecan':11.00,'chocolate buttercream':8.00,'vanilla buttercream':6.50,'lemon glaze':2.50,'whipped chocolate ganache':10.00,'peanut butter buttercream':9.00,'cookie butter buttercream':11.00,'custom':8.00};
+const FILLING_COSTS={'none':0,'strawberry':4.00,'blueberry':4.00,'apple':3.50,'peach':4.00,'cherry':4.00,'lemon curd':5.00,'cream cheese':5.00,'nutella':5.00,'caramel':3.50,'raspberry':4.50};
+const SLICES_PER_LAYER={6:6,8:10,9:12,10:16,12:20};
+const PAN_SCALE={6:{batter_scale:0.56,time_adjust:-8},8:{batter_scale:0.79,time_adjust:-4},9:{batter_scale:1.00,time_adjust:0},10:{batter_scale:1.23,time_adjust:5},12:{batter_scale:1.78,time_adjust:10}};
+function getScales(){const p=parseInt(document.getElementById('pan').value);const n=parseInt(document.getElementById('layers').value);const pan=PAN_SCALE[p];const scale=(pan.batter_scale*n)/2.0;return{boxes:Math.max(1,Math.round(scale+0.49)),eggs:Math.round(4*scale),oil:Math.round(0.5*scale*100)/100,water:Math.round(0.5*scale*100)/100,sc:Math.round(1.0*scale*100)/100,bc_f:Math.round((1.5*n+2.0)*10)/10,bake:28+pan.time_adjust,panSize:p,numLayers:n};}
+function calcIngredientCost(scales,icingKey,fillingKey,hasExtra){const{boxes,eggs,oil,sc}=scales;let cost=0;cost+=boxes*3.00;cost+=boxes*1.75;cost+=sc*1.00;cost+=eggs*0.45;cost+=oil*0.75;if(hasExtra)cost+=3.50;cost+=(ICING_COSTS[icingKey]||8.00);cost+=(FILLING_COSTS[fillingKey]||0);return Math.round(cost*100)/100;}
+const FLAVOR_MAP={'vanilla':{box_mix:"French Vanilla",pudding:"Vanilla (3.4 oz)",extra:null,filling:null,suggested_icing:"vanilla buttercream",suggested_filling:null},'chocolate':{box_mix:"Devil's Food",pudding:"Chocolate (3.9 oz)",extra:"1 tsp espresso powder",filling:null,suggested_icing:"chocolate buttercream",suggested_filling:"raspberry"},'strawberry':{box_mix:"Strawberry",pudding:"Strawberry (3.4 oz)",extra:"½ cup freeze-dried strawberries, crushed",filling:null,suggested_icing:"default",suggested_filling:"strawberry"},'lemon':{box_mix:"Lemon",pudding:"Lemon (3.4 oz)",extra:"Zest of 1 lemon",filling:null,suggested_icing:"lemon glaze",suggested_filling:"lemon curd"},'red velvet':{box_mix:"Red Velvet",pudding:"Cheesecake (3.4 oz)",extra:null,filling:null,suggested_icing:"cream cheese",suggested_filling:"cream cheese"},'funfetti':{box_mix:"Funfetti",pudding:"Vanilla (3.4 oz)",extra:"2 tbsp extra sprinkles",filling:null,suggested_icing:"vanilla buttercream",suggested_filling:null},'carrot':{box_mix:"Spice Cake",pudding:"Vanilla (3.4 oz)",extra:"1 cup shredded carrot, ½ cup drained crushed pineapple",filling:null,suggested_icing:"cream cheese",suggested_filling:"caramel"},'spice':{box_mix:"Spice Cake",pudding:"Butterscotch (3.4 oz)",extra:"1 tsp cinnamon, ¼ tsp cloves",filling:null,suggested_icing:"cream cheese",suggested_filling:"caramel"},'white':{box_mix:"White",pudding:"Vanilla (3.4 oz)",extra:"1 tsp almond extract",filling:null,suggested_icing:"vanilla buttercream",suggested_filling:"raspberry"},'reeses':{box_mix:"Devil's Food",pudding:"Chocolate (3.9 oz)",extra:"½ cup creamy peanut butter mixed into batter, ½ cup chopped Reese's cups folded in at end",filling:null,suggested_icing:"peanut butter buttercream",suggested_filling:"nutella"},'cookie butter':{box_mix:"Spice Cake",pudding:"Cheesecake (3.4 oz)",extra:"½ cup Biscoff/cookie butter spread mixed into batter, 1 tsp cinnamon",filling:null,suggested_icing:"cookie butter buttercream",suggested_filling:"caramel"},'blueberry lemon':{box_mix:"Lemon",pudding:"Lemon (3.4 oz)",extra:"Zest of 1 lemon",filling:"1 can blueberry pie filling",suggested_icing:"default",suggested_filling:null},'oreo':{box_mix:"White",pudding:"Cookies & Cream (3.4 oz)",extra:"1 cup crushed Oreos folded in at end",filling:null,suggested_icing:"default",suggested_filling:"nutella"},'smores':{box_mix:"Golden Butter",pudding:"Vanilla (3.4 oz)",extra:"1 cup crushed graham crackers folded in at end, 1 cup mini marshmallows folded in at end",filling:"1 jar hot fudge sauce",suggested_icing:"chocolate buttercream",suggested_filling:"nutella"},'strawberry lemon':{box_mix:"Lemon",pudding:"Strawberry (3.4 oz)",extra:"Zest of 1 lemon, ½ cup freeze-dried strawberries crushed",filling:"1 can strawberry pie filling",suggested_icing:"default",suggested_filling:null},'banana pudding':{box_mix:"French Vanilla",pudding:"Banana Cream (3.4 oz)",extra:"1 tsp banana extract, 1 cup crushed Nilla wafers folded in at end",filling:"1 can banana cream pie filling",suggested_icing:"vanilla buttercream",suggested_filling:"caramel"},'peach cobbler':{box_mix:"French Vanilla",pudding:"Cheesecake (3.4 oz)",extra:"1 tsp cinnamon, ¼ tsp nutmeg",filling:"1 can peach pie filling",suggested_icing:"cream cheese",suggested_filling:null},'german chocolate':{box_mix:"Devil's Food",pudding:"Chocolate (3.9 oz)",extra:"1 tsp espresso powder",filling:null,suggested_icing:"coconut pecan",suggested_filling:"caramel"}};
+const ICING_RECIPES={'default':{name:"Rich's Better Cream",ingredients:(f)=>[`${f} cups Rich's Better Cream, whipped to stiff peaks`],instructions:"Whip Rich's Better Cream to stiff peaks. Keep cold until ready to use."},'cream cheese':{name:"Cream Cheese Frosting",ingredients:()=>["2 blocks (16 oz) cream cheese, softened","1 cup (2 sticks) unsalted butter, softened","4 cups powdered sugar, sifted","2 tsp vanilla extract","Pinch of salt"],instructions:"Beat cream cheese and butter until fluffy. Gradually add powdered sugar, then vanilla and salt. Beat until smooth."},'coconut pecan':{name:"Coconut Pecan Frosting",ingredients:()=>["1 cup evaporated milk","1 cup granulated sugar","3 egg yolks","½ cup (1 stick) unsalted butter","1 tsp vanilla extract","1½ cups sweetened shredded coconut","1 cup chopped pecans"],instructions:"Combine milk, sugar, egg yolks, and butter in a saucepan over medium heat. Stir constantly until thickened (~10 min). Remove from heat, stir in vanilla, coconut, and pecans. Cool completely before spreading."},'chocolate buttercream':{name:"Chocolate Buttercream",ingredients:()=>["1 cup (2 sticks) unsalted butter, softened","½ cup unsweetened cocoa powder","3½ cups powdered sugar, sifted","⅓ cup heavy cream","2 tsp vanilla extract","Pinch of salt"],instructions:"Beat butter until fluffy. Add cocoa powder and mix. Gradually add powdered sugar alternating with cream. Add vanilla and salt. Beat until light and fluffy."},'vanilla buttercream':{name:"Vanilla Buttercream",ingredients:()=>["1 cup (2 sticks) unsalted butter, softened","4 cups powdered sugar, sifted","¼ cup heavy cream","2 tsp vanilla extract","Pinch of salt"],instructions:"Beat butter until fluffy. Gradually add powdered sugar alternating with cream. Add vanilla and salt. Beat until light and smooth."},'lemon glaze':{name:"Lemon Glaze",ingredients:()=>["2 cups powdered sugar, sifted","3–4 tbsp fresh lemon juice","1 tsp lemon zest"],instructions:"Whisk powdered sugar with lemon juice until smooth and pourable. Add zest and drizzle over cooled cake."},'whipped chocolate ganache':{name:"Whipped Chocolate Ganache",ingredients:()=>["2 cups heavy cream","16 oz semi-sweet chocolate chips","2 tbsp unsalted butter","1 tsp vanilla extract"],instructions:"Heat cream until steaming. Pour over chocolate and butter, let sit 3 min, then stir until smooth. Add vanilla. Chill 2 hours, then whip to fluffy peaks."},'peanut butter buttercream':{name:"Peanut Butter Buttercream",ingredients:()=>["1 cup (2 sticks) unsalted butter, softened","1 cup creamy peanut butter","3½ cups powdered sugar, sifted","¼ cup heavy cream","1 tsp vanilla extract","Pinch of salt"],instructions:"Beat butter and peanut butter until smooth. Gradually add powdered sugar alternating with cream. Add vanilla and salt. Beat until fluffy."},'cookie butter buttercream':{name:"Cookie Butter Buttercream",ingredients:()=>["1 cup (2 sticks) unsalted butter, softened","¾ cup Biscoff/cookie butter spread","3½ cups powdered sugar, sifted","3 tbsp heavy cream","1 tsp vanilla extract"],instructions:"Beat butter and cookie butter until smooth. Add powdered sugar alternating with cream. Add vanilla. Beat until light and fluffy."}};
+function renderRecipe(flavorName,flavorData,icingData,scales,chosenFilling,flavorNote='',icingKey='default',fillingKey='none'){const{boxes,eggs,oil,water,sc,bc_f,bake,panSize,numLayers}=scales;const activeFilling=flavorData.filling||chosenFilling;const hasFilling=activeFilling&&activeFilling.toLowerCase()!=='none';const hasExtra=flavorData.extra&&flavorData.extra.toLowerCase()!=='none';const fillingInstructions=hasFilling?`  - Pipe a dam of icing around the edge of each layer before adding filling.\n  - Spread filling inside the dam, then stack next layer.`:`  - Spread icing between each layer.`;const ingredientCost=calcIngredientCost(scales,icingKey,fillingKey,hasExtra);const slices=(SLICES_PER_LAYER[panSize]||12)*numLayers;const ingredientsList=[`${boxes} box(es) ${flavorData.box_mix} cake mix`,`${boxes} box(es) instant pudding — ${flavorData.pudding}`,`${sc} cup(s) sour cream`,`${eggs} large eggs`,`${oil} cup(s) vegetable oil`,`${water} cup(s) water`,...(hasExtra?flavorData.extra.split(',').map(s=>s.trim()):[])];const icingIngredients=icingData.ingredients(bc_f);const shoppingList=[`${boxes}x  ${flavorData.box_mix} cake mix`,`${boxes}x  Instant pudding — ${flavorData.pudding}`,`Sour cream  (${sc} cup(s) needed)`,`Eggs  (${eggs} needed)`,`Vegetable oil  (${oil} cup(s) needed)`,...(hasFilling?[activeFilling]:[]),...(hasExtra?flavorData.extra.split(',').map(s=>s.trim()):[]),`— ${icingData.name} —`,...icingIngredients];const fullText=`🎂 ${flavorName} Cake — ${panSize}" Pan — ${numLayers} Layers\n\n`+(flavorNote?`${flavorNote}\n\n`:'')+`BATTER\n${ingredientsList.map(i=>`• ${i}`).join('\n')}\n\nFILLING\n${hasFilling?`• ${activeFilling} (spread between layers)`:'• None — use icing between layers'}\n\nICING — ${icingData.name}\n${icingIngredients.map(i=>`• ${i}`).join('\n')}\n\nBAKE: 325°F | ${bake}–${bake+5} min per layer\n\nINSTRUCTIONS\n\nPREP\n1. Preheat oven to 325°F.\n2. Grease and flour pans, or line with parchment rounds.\n\nBATTER\n3. Whisk together cake mix(es) and pudding mix(es).\n4. Add sour cream, eggs, oil, and water. Beat on medium 2 minutes.\n`+(hasExtra?`5. Fold in: ${flavorData.extra}.\n`:'')+`\nBAKE\n- Divide batter evenly. Tap to release air bubbles.\n- Bake per time above, rotating halfway.\n- Done when toothpick comes out clean.\n\nCOOL\n- Cool in pans 10 min, then turn out.\n- Cool completely before icing.\n\nICING — ${icingData.name}\n- ${icingData.instructions}\n${fillingInstructions}\n- Apply a thin crumb coat, chill 20 min, then final coat.\n\nTIPS\n- Chill finished cake before serving for clean slices.\n- Unfrosted layers freeze great — wrap tightly.`;const shoppingText=`SHOPPING LIST — ${flavorName} Cake\n\n${shoppingList.map(i=>`☐ ${i}`).join('\n')}`;const html=`<div class="recipe-box"><div class="recipe-title">🎂 ${flavorName} Cake</div><div style="font-family:'Inconsolata',monospace;font-size:10px;letter-spacing:3px;color:var(--muted);margin-bottom:${flavorNote?'10px':'20px'}">${panSize}" PAN · ${numLayers} LAYER${numLayers>1?'S':''}</div>${flavorNote?`<div class="flavor-note">✨ ${flavorNote}</div>`:''}<div class="recipe-section"><div class="recipe-section-title">🛒 Batter Ingredients</div>${ingredientsList.map(i=>`<div class="recipe-item">${i}</div>`).join('')}</div><div class="recipe-section"><div class="recipe-section-title">🫐 Filling</div>${hasFilling?`<div class="recipe-item">${activeFilling} (spread between layers)</div>`:`<div class="recipe-item" style="color:var(--muted)">None — use icing between layers</div>`}</div><div class="recipe-section"><div class="recipe-section-title">🍦 Icing — ${icingData.name}</div>${icingIngredients.map(i=>`<div class="recipe-item">${i}</div>`).join('')}</div><div class="bake-badge">⏱ 325°F · ${bake}–${bake+5} min per layer</div><div class="recipe-section"><div class="recipe-section-title">📋 Instructions</div><div class="instructions-text">PREP\n1. Preheat oven to 325°F.\n2. Grease and flour pans, or line with parchment rounds.\n\nBATTER\n3. Whisk together cake mix(es) and pudding mix(es).\n4. Add sour cream, eggs, oil, and water. Beat on medium 2 min.${hasExtra?`\n5. Fold in: ${flavorData.extra}.`:''}\n\nBAKE\n- Divide batter evenly. Tap to release air bubbles.\n- Bake per time above, rotating halfway through.\n- Done when toothpick comes out clean and edges pull from pan.\n\nCOOL\n- Cool in pans 10 min, then turn out onto a wire rack.\n- Cool completely before icing.\n\nICING — ${icingData.name}\n- ${icingData.instructions}\n${fillingInstructions}\n- Apply a thin crumb coat, chill 20 min, then final coat.</div></div><div class="tips-box"><div class="tips-text">💡 Chill finished cake before serving for clean slices. Unfrosted layers freeze great — wrap tightly.</div></div><div class="shopping-box"><div class="shopping-title">🛒 Shopping List</div>${shoppingList.map(i=>`<div class="recipe-item recipe-check">${i}</div>`).join('')}<button class="copy-btn" id="copy-recipe-btn">Copy Full Recipe</button><button class="copy-btn" id="copy-list-btn" style="margin-left:8px">Copy Shopping List</button></div><div class="pricing-box"><div class="pricing-title">💰 Suggested Price</div><div class="pricing-row"><span class="pricing-row-label">Ingredients</span><span>$${ingredientCost.toFixed(2)}</span></div><div class="pricing-row" style="align-items:flex-start;gap:8px"><span class="pricing-row-label" style="padding-top:6px">Labor</span><div class="pricing-labor-row"><input class="pricing-input" id="price-hours" type="number" value="3" min="0.5" step="0.5"> hrs &nbsp;@&nbsp;$<input class="pricing-input" id="price-rate" type="number" value="25" min="1" step="5">/hr <span style="color:var(--text)">&nbsp;= <span id="labor-cost">$75.00</span></span></div></div><hr class="pricing-divider"><div class="pricing-total-row"><span class="pricing-total-label">Suggested Price</span><span class="pricing-total-value" id="price-total">$${(ingredientCost+75).toFixed(2)}</span></div><div class="pricing-per-slice" id="price-per-slice">${slices} slices · $${((ingredientCost+75)/slices).toFixed(2)} per slice</div></div></div>`;setTimeout(()=>{const recipeBtn=document.getElementById('copy-recipe-btn');const listBtn=document.getElementById('copy-list-btn');if(recipeBtn)recipeBtn.addEventListener('click',function(){copyText(fullText,this);});if(listBtn)listBtn.addEventListener('click',function(){copyText(shoppingText,this);});function updatePricing(){const hours=parseFloat(document.getElementById('price-hours').value)||0;const rate=parseFloat(document.getElementById('price-rate').value)||0;const labor=hours*rate;const total=ingredientCost+labor;document.getElementById('labor-cost').textContent='$'+labor.toFixed(2);document.getElementById('price-total').textContent='$'+total.toFixed(2);document.getElementById('price-per-slice').textContent=slices+' slices · $'+(total/slices).toFixed(2)+' per slice';}const ph=document.getElementById('price-hours');const pr=document.getElementById('price-rate');if(ph)ph.addEventListener('input',updatePricing);if(pr)pr.addEventListener('input',updatePricing);},0);return html;}
+function generate(){const flavorKey=document.getElementById('flavor').value;if(flavorKey==='custom')return;const flavorData=FLAVOR_MAP[flavorKey];if(!flavorData)return;const icingKey=document.getElementById('icing').value;const icingData=ICING_RECIPES[icingKey]||ICING_RECIPES['default'];const scales=getScales();const flavorName=flavorKey.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');const fillingKey=document.getElementById('filling').value;const chosenFilling=FILLING_LABELS[fillingKey]||null;clearStatus();document.getElementById('output').innerHTML=renderRecipe(flavorName,flavorData,icingData,scales,chosenFilling,'',icingKey,fillingKey);}
+async function generateCustom(){const flavorName=document.getElementById('custom-flavor').value.trim();const customIcing=document.getElementById('custom-icing').value.trim();const apiKey=document.getElementById('api-key').value.trim();if(!apiKey){setStatus('⚠ Paste your Groq API key first',true);return;}if(!flavorName){setStatus('⚠ Enter a flavor name first',true);return;}if(FLAVOR_MAP[flavorName.toLowerCase()]){setStatus(`⚠ "${flavorName}" is already in the preset list — select it from the dropdown`,true);return;}document.getElementById('custom-btn').disabled=true;document.getElementById('output').innerHTML='';setStatus(`✨ Generating ${flavorName} recipe with Groq...`);const scales=getScales();const fillingKey=document.getElementById('filling').value;const chosenFilling=FILLING_LABELS[fillingKey]||null;const icingInstruction=customIcing?`The baker wants this specific icing: ${customIcing}. Provide a full ingredient list and instructions.`:"Suggest the best traditional or complementary icing for this cake. Provide a full ingredient list and instructions.";const prompt=`You are a cake recipe assistant. A baker uses this specific method for ALL cakes:\n- Box cake mix (pick the best flavor base)\n- Instant pudding mix (pick the best match)\n- Sour cream, eggs, oil, water (standard amounts, already calculated)\n- Icing is made separately and applied after baking — NOT added to the batter\n- Pie filling is sometimes spread between layers (suggest if it fits the flavor)\n\nThe cake they want is: ${flavorName}\nIcing request: ${icingInstruction}\n${chosenFilling?`The baker has selected this filling: ${chosenFilling}. Include it in the recipe.`:''}\n\nRespond in this exact format and nothing else:\n\nBOX MIX: [best box mix flavor]\nPUDDING: [best instant pudding flavor + oz size]\nEXTRA INGREDIENTS: [comma separated batter add-ins with amounts, or None]\nPIE FILLING: [specific pie filling with quantity, or None]\nICING NAME: [name of the icing]\nICING INGREDIENTS: [pipe-separated list of ingredients with amounts]\nICING INSTRUCTIONS: [one to two sentences on how to make the icing]\nFLAVOR NOTE: [one sentence on why this combination works]`;try{const res=await fetch(GROQ_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},body:JSON.stringify({model:GROQ_MODEL,messages:[{role:'user',content:prompt}],max_tokens:600,temperature:0.7})});if(!res.ok){const err=await res.json();throw new Error(err?.error?.message||`API error ${res.status}`);}const data=await res.json();const raw=data.choices[0].message.content.trim();const lines={};raw.split('\n').forEach(line=>{if(line.includes(':')){const idx=line.indexOf(':');lines[line.slice(0,idx).trim()]=line.slice(idx+1).trim();}});const extra=lines['EXTRA INGREDIENTS']||'None';const filling=chosenFilling||(lines['PIE FILLING']||'None');const icingName=lines['ICING NAME']||'Custom Icing';const icingIngredsRaw=lines['ICING INGREDIENTS']||'';const icingInstructions=lines['ICING INSTRUCTIONS']||'';const flavorNote=lines['FLAVOR NOTE']||'';const flavorData={box_mix:lines['BOX MIX']||'?',pudding:lines['PUDDING']||'?',extra:extra.toLowerCase()==='none'?null:extra,filling:filling.toLowerCase()==='none'?null:filling,suggested_icing:'custom'};const icingData={name:icingName,ingredients:()=>icingIngredsRaw.split('|').map(s=>s.trim()).filter(Boolean),instructions:icingInstructions};clearStatus();document.getElementById('output').innerHTML=renderRecipe(flavorName.charAt(0).toUpperCase()+flavorName.slice(1),flavorData,icingData,scales,chosenFilling,flavorNote,'custom',fillingKey);}catch(e){setStatus('⚠ '+e.message,true);}document.getElementById('custom-btn').disabled=false;}
+</script>
+</body>
+</html>
