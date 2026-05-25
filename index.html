@@ -10,16 +10,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inconsolata:wght@400;600&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0608;
-    --surface: rgba(255,255,255,0.03);
-    --border: rgba(255,160,120,0.18);
-    --accent: #fb923c;
-    --accent2: #9a3412;
-    --text: #fdf4ee;
-    --muted: #9a7a6a;
-    --green: #34d399;
-    --pink: #f9a8d4;
-    --error: #f87171;
+    --bg: #0a0608; --surface: rgba(255,255,255,0.03); --border: rgba(255,160,120,0.18);
+    --accent: #fb923c; --accent2: #9a3412; --text: #fdf4ee; --muted: #9a7a6a;
+    --green: #34d399; --pink: #f9a8d4; --error: #f87171;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body { background: var(--bg); color: var(--text); font-family: 'Lora', Georgia, serif; min-height: 100vh; min-height: -webkit-fill-available; padding-bottom: env(safe-area-inset-bottom); overflow-x: hidden; }
@@ -105,7 +98,7 @@
       <input type="password" id="api-key" class="api-input" placeholder="gsk_...">
       <button class="api-toggle" onclick="toggleKey()">Show</button>
     </div>
-    <div class="api-hint">Get yours free at console.groq.com → API Keys</div>
+    <div class="api-hint">Shared with all Cryptid Static tools — enter once, works everywhere · console.groq.com</div>
     <div class="api-saved" id="api-saved">✓ Key saved to this browser</div>
   </div>
   <div class="section-label">Cake Flavor</div>
@@ -200,8 +193,16 @@
 <script>
 const GROQ_URL="https://api.groq.com/openai/v1/chat/completions";
 const GROQ_MODEL="llama-3.3-70b-versatile";
-window.addEventListener('load',()=>{const s=localStorage.getItem('groq_api_key');if(s){document.getElementById('api-key').value=s;document.getElementById('api-saved').style.display='block';}});
-document.getElementById('api-key').addEventListener('change',()=>{const k=document.getElementById('api-key').value.trim();if(k){localStorage.setItem('groq_api_key',k);document.getElementById('api-saved').style.display='block';}});
+
+// Standardized key name: key_groq (shared with all Cryptid Static tools)
+window.addEventListener('load',()=>{
+  const s=localStorage.getItem('key_groq');
+  if(s){document.getElementById('api-key').value=s;document.getElementById('api-saved').style.display='block';}
+});
+document.getElementById('api-key').addEventListener('change',()=>{
+  const k=document.getElementById('api-key').value.trim();
+  if(k){localStorage.setItem('key_groq',k);document.getElementById('api-saved').style.display='block';}
+});
 function toggleKey(){const i=document.getElementById('api-key');const b=event.target;if(i.type==='password'){i.type='text';b.textContent='Hide';}else{i.type='password';b.textContent='Show';}}
 const LOCKED_FILLINGS={'blueberry lemon':'1 can blueberry pie filling','strawberry lemon':'1 can strawberry pie filling','peach cobbler':'1 can peach pie filling'};
 const FILLING_OPTION_LABELS={'none':'None','strawberry':'Strawberry Pie Filling','blueberry':'Blueberry Pie Filling','apple':'Apple Pie Filling','peach':'Peach Pie Filling','cherry':'Cherry Pie Filling','lemon curd':'Lemon Curd','cream cheese':'Cream Cheese Filling','nutella':'Nutella','caramel':'Caramel','raspberry':'Raspberry Jam'};
